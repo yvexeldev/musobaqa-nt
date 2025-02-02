@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Address {
+  id        String            @id @default(uuid())
+  name      String
+  long      Int
+  lan       Int
+  shoppings ShoppingAddress[]
+
+  @@map("addresses")
+}
+
+model Product {
+  id        String            @id @default(uuid())
+  name      String
+  imageLink String
+  price     Int
+  type      String
+  shoppings ShoppingProduct[]
+
+  @@map("products")
+}
+
+model Shopping {
+  id        String            @id @default(uuid())
+  name      String
+  addresses ShoppingAddress[]
+  products  ShoppingProduct[]
+
+  @@map("shoppings")
+}
+
+model ShoppingAddress {
+  shoppingId String
+  addressId  String
+
+  shopping Shopping @relation(fields: [shoppingId], references: [id], onDelete: Cascade)
+  address  Address  @relation(fields: [addressId], references: [id], onDelete: Cascade)
+
+  @@id([shoppingId, addressId])
+  @@map("shopping_addresses")
+}
+
+model ShoppingProduct {
+  shoppingId String
+  productId  String
+
+  shopping Shopping @relation(fields: [shoppingId], references: [id], onDelete: Cascade)
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([shoppingId, productId])
+  @@map("shopping_products")
+}
