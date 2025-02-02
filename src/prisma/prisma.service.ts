@@ -14,61 +14,64 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
     }
 
     async loadSeeds() {
-        const addressesData = JSON.parse(
-            fs.readFileSync(
-                path.join(__dirname, '../', '../seeds/addresses.json'),
-                'utf-8',
-            ),
-        );
+        if (process.env.SEED == 'true') {
+            const addressesData = JSON.parse(
+                fs.readFileSync(
+                    path.join(__dirname, '../', '../seeds/addresses.json'),
+                    'utf-8',
+                ),
+            );
 
-        const productsData = JSON.parse(
-            fs.readFileSync(
-                path.join(__dirname, '../', '../seeds/products.json'),
-                'utf-8',
-            ),
-        );
+            const productsData = JSON.parse(
+                fs.readFileSync(
+                    path.join(__dirname, '../', '../seeds/products.json'),
+                    'utf-8',
+                ),
+            );
 
-        const shoppingsData = JSON.parse(
-            fs.readFileSync(
-                path.join(__dirname, '../', '../seeds/shoppings.json'),
-                'utf-8',
-            ),
-        );
+            const shoppingsData = JSON.parse(
+                fs.readFileSync(
+                    path.join(__dirname, '../', '../seeds/shoppings.json'),
+                    'utf-8',
+                ),
+            );
 
-        // Insert Addresses
-        await this.address.createMany({
-            data: addressesData,
-        });
-
-        // Insert Products
-        await this.product.createMany({
-            data: productsData,
-        });
-
-        // Insert Shoppings and Many-to-Many Relations
-        for (const shopping of shoppingsData) {
-            await this.shopping.create({
-                data: {
-                    id: shopping.id,
-                    name: shopping.name,
-                    addresses: {
-                        create: shopping.addressIds.map(
-                            (addressId: string) => ({
-                                address: { connect: { id: addressId } },
-                            }),
-                        ),
-                    },
-                    products: {
-                        create: shopping.productIds.map(
-                            (productId: string) => ({
-                                product: { connect: { id: productId } },
-                            }),
-                        ),
-                    },
-                },
+            // Insert Addresses
+            await this.address.createMany({
+                data: addressesData,
             });
-        }
 
-        this.logger.debug('Seed data loaded successfully!');
+            // Insert Products
+            await this.product.createMany({
+                data: productsData,
+            });
+
+            // Insert Shoppings and Many-to-Many Relations
+            for (const shopping of shoppingsData) {
+                await this.shopping.create({
+                    data: {
+                        id: shopping.id,
+                        name: shopping.name,
+                        addresses: {
+                            create: shopping.addressIds.map(
+                                (addressId: string) => ({
+                                    address: { connect: { id: addressId } },
+                                }),
+                            ),
+                        },
+                        products: {
+                            create: shopping.productIds.map(
+                                (productId: string) => ({
+                                    product: { connect: { id: productId } },
+                                }),
+                            ),
+                        },
+                    },
+                });
+            }
+
+            this.logger.debug('Seed data loaded successfully!');
+        }
+        this.logger.debug('Seed data loading skipped!');
     }
 }
