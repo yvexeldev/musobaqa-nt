@@ -86,4 +86,36 @@ export class ProductService {
         if (!product) throw new NotFoundException('Product not found!');
         return product;
     }
+
+    async getCheapest(productId: string) {
+        const cheapestOptions = await this.prisma.shoppingProduct.findMany({
+            where: {
+                productId,
+            },
+            orderBy: {
+                product: {
+                    price: 'asc',
+                },
+            },
+            include: {
+                shopping: {
+                    include: {
+                        addresses: {
+                            include: {
+                                address: true, // Get full address details
+                            },
+                        },
+                    },
+                },
+                product: true, // Get full product details
+            },
+        });
+
+        if (!cheapestOptions.length)
+            throw new NotFoundException(
+                'No shops found with the given product!',
+            );
+
+        return cheapestOptions;
+    }
 }
